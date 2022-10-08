@@ -153,7 +153,7 @@ export default {
           axios.get(`${this.endpoint}/v1/imageReq`, { headers: { token } }).then(data => {
             const params = new FormData();
             console.log(file)
-            const words = file.name.split(", ").map(t => t.trim())
+            const words = file.name.split(",").map(t => t.trim())
             console.log(words)
             let w = []
             try {
