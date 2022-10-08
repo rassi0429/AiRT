@@ -18,7 +18,7 @@ export default {
       { hid: 'description', name: 'description', content: 'NeosVR Photo Upload site' },
       { hid: 'og:site_name', property: 'og:site_name', content: 'NeosFrames' },
       { hid: 'og:type', property: 'og:type', content: 'website' },
-      { hid: 'og:url', property: 'og:url', content: 'https://photo.neos.love/' },
+      { hid: 'og:url', property: 'og:url', content: 'https://image.kokoa.dev/' },
       { hid: 'og:title', property: 'og:title', content: 'NeosFrames' },
       { hid: 'og:description', property: 'og:description', content: 'NeosVR Photo Upload site' },
       { hid: 'og:image', property: 'og:image', content: 'https://imagedelivery.net/n_TCh9IYDQry4G-U7jzPdQ/92a0af1c-47b8-4e3b-e422-a017de85e600/public' },

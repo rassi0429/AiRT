@@ -26,9 +26,9 @@ export default {
   layout: "normal",
   async asyncData({params,query}) {
     try {
-      const {data} = await axios.get("https://photo-api.neos.love/v1/tag/" + encodeURIComponent(params.id))
+      const {data} = await axios.get("https://image-api.kokoa.dev/v1/tag/" + encodeURIComponent(params.id))
       if (query.modal) {
-        const photo = await axios.get("https://photo-api.neos.love/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
+        const photo = await axios.get("https://image-api.kokoa.dev/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
         return {preData: data, prePhotoData: photo.data}
       }
       return {preData: data}

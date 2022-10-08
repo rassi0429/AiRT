@@ -3,14 +3,12 @@ services:
   front-node:
     build: front
     ports:
-      - 127.0.0.1:3081:3081
+      - 127.0.0.1:5010:3081
     init: true
     restart: always
   back-db:
     image: mariadb
     restart: always
-    ports:
-      - 127.0.0.1:3388:3306
     volumes:
       - ./back/mariadb:/docker-entrypoint-initdb.d
       - ./back/dbdata:/var/lib/mysql
@@ -23,7 +21,7 @@ services:
   back-node:
     build: back
     ports:
-      - 127.0.0.1:3080:3080
+      - 127.0.0.1:5009:3080
     init: true
     restart: always
     environment:

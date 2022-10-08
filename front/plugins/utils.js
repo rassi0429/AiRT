@@ -1,4 +1,4 @@
-const baseUrl = 'https://photo.neos.love';
+const baseUrl = 'https://image.kokoa.dev';
 const defaultTwitterShareTitle = 'NeosVR Photo';
 
 const fixedEncodeURIComponent = (str) => {

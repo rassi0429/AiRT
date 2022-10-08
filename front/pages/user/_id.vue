@@ -33,9 +33,9 @@ export default {
   layout: "normal",
   async asyncData({params, query}) {
     try {
-      const {data} = await axios.get(`https://photo-api.neos.love/v1/user/${params.id}`)
+      const {data} = await axios.get(`https://image-api.kokoa.dev/v1/user/${params.id}`)
       if (query.modal) {
-        const photo = await axios.get("https://photo-api.neos.love/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
+        const photo = await axios.get("https://image-api.kokoa.dev/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
         return {preData: data, prePhotoData: photo.data}
       }
       return {preData: data}
@@ -131,7 +131,7 @@ export default {
       this.userInfo = data
     },
     copyMomentUrl(id) {
-      const clipboardText = `https://photo.neos.love/moment/${id}`;
+      const clipboardText = `https://image.kokoa.dev/moment/${id}`;
       try {
         navigator.clipboard.writeText(clipboardText);
         this.$refs['m' + id][0].src = '/check.png'

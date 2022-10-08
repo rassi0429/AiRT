@@ -5,7 +5,7 @@
 
 ### 環境構築
 ```shell
-$ git clone https://github.com/rassi0429/photo.neos.love
+$ git clone https://github.com/rassi0429/image.kokoa.dev
 $ cd frontend
 $ npm install
 $ npm run dev
@@ -16,7 +16,7 @@ $ npm run dev
 
 ## バックエンド
 ```shell
-$ git clone https://github.com/rassi0429/photo.neos.love
+$ git clone https://github.com/rassi0429/image.kokoa.dev
 $ cd back
 $ npm install
 $ docker-compose up db

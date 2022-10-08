@@ -1,5 +1,5 @@
-# photo.neos.love
-API docs is here https://rassi0429.github.io/photo.neos.love-back/
+# image.kokoa.dev
+API docs is here https://rassi0429.github.io/image.kokoa.dev-back/
 
 
 ## Build Setup

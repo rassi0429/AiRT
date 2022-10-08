@@ -4,7 +4,7 @@
     img#uploadBtn(v-show="uid" @click="openModal" tag="img" src="/upload_btn.png")
     nuxt-link#loginBtn(v-show="uid" :to="'/user/'+uid" tag="img" :src="photoUrl")
     img#uploadBtn(v-show="!uid" @click="twitterLogin" src="/login_btn.png")
-    a#CodeBtn(href="https://github.com/rassi0429/photo.neos.love")
+    a#CodeBtn(href="https://github.com/rassi0429/image.kokoa.dev")
       img(src="/code.png")
     div#imageroot
       grid-image(:images="images" replace="thumbnail")
@@ -24,7 +24,7 @@ export default {
   async asyncData({params, query}) {
     try {
       if (query.modal) {
-        const photo = await axios.get("https://photo-api.neos.love/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
+        const photo = await axios.get("https://image-api.kokoa.dev/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
         return {prePhotoData: photo.data}
       }
     } catch {}

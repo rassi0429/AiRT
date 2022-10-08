@@ -25,10 +25,10 @@ export default {
   layout: "normal",
   async asyncData({params, query}) {
     try {
-      const {data} = await axios.get("https://photo-api.neos.love/v1/moment/" + params.id)
-      const user = await axios.get(`https://photo-api.neos.love/v1/user/${data.author}`)
+      const {data} = await axios.get("https://image-api.kokoa.dev/v1/moment/" + params.id)
+      const user = await axios.get(`https://image-api.kokoa.dev/v1/user/${data.author}`)
       if (query.modal) {
-        const photo = await axios.get("https://photo-api.neos.love/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
+        const photo = await axios.get("https://image-api.kokoa.dev/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
         return {preData: data, prePhotoData: photo.data,preName: user.data.user.name}
       }
       return {preData: data, preName: user.data.user.name}
@@ -48,7 +48,7 @@ export default {
   },
   head() {
     if (this.$route.query.modal) {
-      if(!this.preData) return {}
+      // if(!this.preData) return {}
       return {
         title: this.prePhotoData?.comment,
         meta: [
@@ -112,7 +112,7 @@ export default {
       return date.toLocaleDateString() + " " + date.toLocaleTimeString()
     },
     copyMomentUrl(id) {
-      const clipboardText = `https://photo.neos.love/moment/${id}`;
+      const clipboardText = `https://image.kokoa.dev/moment/${id}`;
       try {
         navigator.clipboard.writeText(clipboardText);
         this.$refs.tag.src = '/check.png'

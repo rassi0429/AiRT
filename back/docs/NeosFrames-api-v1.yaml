@@ -6,7 +6,7 @@ info:
   version: '1.0'
   summary: NeosFrames API v1
 servers:
-  - url: 'https://photo-api.neos.love/v1'
+  - url: 'https://image-api.kokoa.dev/v1'
 paths:
   /user:
     post:
