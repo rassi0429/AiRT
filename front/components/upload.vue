@@ -45,7 +45,7 @@
 <script>
 import axios from "axios";
 import EXIF from "exif-js";
-import {mapActions, mapState, mapMutations} from "vuex";
+import { mapActions, mapState, mapMutations } from "vuex";
 import auth from "@/plugins/auth";
 
 export default {
@@ -119,7 +119,7 @@ export default {
     deleteFile(index) {
       this.files.splice(index, 1)
     },
-    changeComment({index, text}) {
+    changeComment({ index, text }) {
       console.log(text.target.value)
       this.files[index].comment = text.target.value
     },
@@ -130,12 +130,12 @@ export default {
       if (!this.files.length) return
       const user = await auth()
       const token = await user.getIdToken(true)
-      await axios.post(`${this.endpoint}/v1/user`, {}, {headers: {token}})
+      await axios.post(`${this.endpoint}/v1/user`, {}, { headers: { token } })
       this.isUploading = true
       Promise.all(this.files.map(f => this.uploadImage(f, token))).then(async (w) => {
         const photos = w.map(res => res.data.id)
         // this.$router.push("/")
-        const {data} = await axios.post(`${this.endpoint}/v1/moment`, {title: this.title, photos}, {headers: {token}})
+        const { data } = await axios.post(`${this.endpoint}/v1/moment`, { title: this.title, photos }, { headers: { token } })
         this.closeModal()
         this.uploadCount = 0
         this.$router.push("/moment/" + data.id)
@@ -150,27 +150,35 @@ export default {
     uploadImage(file, token) {
       return new Promise((resolve, reject) => {
         try {
-          axios.get(`${this.endpoint}/v1/imageReq`, {headers: {token}}).then(data => {
+          axios.get(`${this.endpoint}/v1/imageReq`, { headers: { token } }).then(data => {
             const params = new FormData();
             console.log(file)
             const words = file.name.split(", ").map(t => t.trim())
             console.log(words)
             let w = []
-            if(words.length > 1) {
-              const _seed = (words[words.length - 1]).split(" s-")
-              const seed = _seed[1].replace(".png","").replace(".jpg", "")
-              console.log(_seed,seed)
-              words.pop()
-              w = [...words, _seed[0],"s-" + seed]
+            try {
+              if (words.length > 1) {
+                if (words[words.length - 1].startsWith("s-")) {
+                  w = [...words]
+                } else {
+                  const _seed = (words[words.length - 1]).split("s-")
+                  const seed = _seed[1].replace(".png", "").replace(".jpg", "")
+                  console.log(_seed, seed)
+                  words.pop()
+                  w = [...words, _seed[0], "s-" + seed]
+                }
+              }
+            } catch (e) {
+              console.log(e)
             }
 
             params.append('file', file);
-            axios.post(data.data.result.uploadURL, params, {headers: {"content-type": 'multipart/form-data'}}).then(t => {
+            axios.post(data.data.result.uploadURL, params, { headers: { "content-type": 'multipart/form-data' } }).then(t => {
               axios.post(`${this.endpoint}/v1/photo`, {
-                  url: t.data.result.variants.filter(k => k.includes("public"))[0],
-                  comment: file.comment || this.title,
-                  tags: JSON.stringify([...this.tags, ...w])
-                },
+                url: t.data.result.variants.filter(k => k.includes("public"))[0],
+                comment: file.comment || this.title,
+                tags: JSON.stringify([...this.tags, ...w])
+              },
                 {
                   headers: {
                     token
@@ -220,7 +228,6 @@ export default {
 </script>
 
 <style scoped>
-
 .upload-img {
   max-height: 85%;
   overflow-y: scroll;
@@ -295,7 +302,8 @@ p {
 }
 
 #UploadBox {
-  opacity: 0.2;;
+  opacity: 0.2;
+  ;
   min-height: 200px;
   max-height: 300px;
   -webkit-user-drag: none;
@@ -306,7 +314,8 @@ p {
 }
 
 #UploadBox:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
 }
 
 #UploadIcon {
@@ -326,7 +335,8 @@ p {
 }
 
 #textbox {
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
   max-width: 500px;
   border-right: none;
   border-left: none;
@@ -338,7 +348,8 @@ p {
 }
 
 #textbox:hover {
-  opacity: 0.8;;
+  opacity: 0.8;
+  ;
 }
 
 #textbox::placeholder {
@@ -347,7 +358,8 @@ p {
 
 #SubmitBtn {
   position: absolute;
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
   width: 50px;
   right: 0;
   bottom: 0;
@@ -355,7 +367,8 @@ p {
 }
 
 #SubmitBtn:hover {
-  opacity: 0.8;;
+  opacity: 0.8;
+  ;
 }
 
 #UploadBtnLabel {
@@ -390,7 +403,8 @@ p {
 }
 
 #TagBtn {
-  opacity: 0.2;;
+  opacity: 0.2;
+  ;
   margin-right: 3px;
   margin-bottom: 3px;
   height: 1.2em;
@@ -398,28 +412,33 @@ p {
 }
 
 #TagBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
 }
 
 #AddTagBtn {
-  opacity: 0.2;;
+  opacity: 0.2;
+  ;
   width: 1em;
   margin-left: 0.5em;
   top: 0.5em;
 }
 
 #TagBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
 }
 
 #ImageCounter {
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
   margin-bottom: 0.5em;
 }
 
 #commentField {
   display: block;
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
   width: auto;
   border-right: none;
   border-left: none;
@@ -447,17 +466,20 @@ p {
 }
 
 #deleteBtn {
-  opacity: 0.2;;
+  opacity: 0.2;
+  ;
   height: 30px;
   padding-left: 5px;
 }
 
 #deleteBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
 }
 
 #CloseBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
 }
 
 #uploadingAnims {
@@ -466,7 +488,8 @@ p {
 }
 
 #loadIcon {
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
   width: 80px;
   max-height: 30%;
   padding: 0px;
@@ -474,7 +497,7 @@ p {
 
 #uploadingInfo {
   text-align: center;
-  opacity: 0.5;;
+  opacity: 0.5;
+  ;
 }
-
 </style>
