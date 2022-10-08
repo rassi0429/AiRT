@@ -152,12 +152,24 @@ export default {
         try {
           axios.get(`${this.endpoint}/v1/imageReq`, {headers: {token}}).then(data => {
             const params = new FormData();
+            console.log(file)
+            const words = file.name.split(", ").map(t => t.trim())
+            console.log(words)
+            let w = []
+            if(words.length > 1) {
+              const _seed = (words[words.length - 1]).split(" s-")
+              const seed = _seed[1].replace(".png","").replace(".jpg", "")
+              console.log(_seed,seed)
+              words.pop()
+              w = [...words, _seed[0],"s-" + seed]
+            }
+
             params.append('file', file);
             axios.post(data.data.result.uploadURL, params, {headers: {"content-type": 'multipart/form-data'}}).then(t => {
               axios.post(`${this.endpoint}/v1/photo`, {
                   url: t.data.result.variants.filter(k => k.includes("public"))[0],
                   comment: file.comment || this.title,
-                  tags: JSON.stringify(this.tags)
+                  tags: JSON.stringify([...this.tags, ...w])
                 },
                 {
                   headers: {
