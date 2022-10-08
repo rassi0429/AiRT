@@ -159,7 +159,7 @@ export default {
             try {
               if (words.length > 1) {
                 if (words[words.length - 1].startsWith("s-")) {
-                  w = [...words]
+                  w = [...(words.map(t => t.replace(".png", "").replace(".jpg", "")))]
                 } else {
                   const _seed = (words[words.length - 1]).split("s-")
                   const seed = _seed[1].replace(".png", "").replace(".jpg", "")
