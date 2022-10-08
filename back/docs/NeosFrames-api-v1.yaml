@@ -2,9 +2,9 @@ openapi: 3.1.0
 x-stoplight:
   id: cozy5kkqz8l69
 info:
-  title: NeosFrames api v1
+  title: AiRT api v1
   version: '1.0'
-  summary: NeosFrames API v1
+  summary: AiRT API v1
 servers:
   - url: 'https://image-api.kokoa.dev/v1'
 paths:

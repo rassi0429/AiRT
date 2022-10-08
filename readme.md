@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://image.kokoa.dev/"><img src="./public.jpg" alt="NeosFrames" width="800"></a>
+  <a href="https://image.kokoa.dev/"><img src="./public.jpg" alt="AiRT" width="800"></a>
   <br>
   Neos Frames
 </h1>

@@ -55,7 +55,7 @@ const openTwitterShare = (params) => {
   const url = 'https://twitter.com/intent/tweet'
             + `?text=${encodeURIComponent(shareTitle)}`
             + `&url=${encodeURI(shareLink)}`
-            + `&hashtags=NeosFrames${encodeURIComponent(shareTag)}`;
+            + `&hashtags=AiRT${encodeURIComponent(shareTag)}`;
   try {
     window.open(url, '_blank');
   } catch (e) {

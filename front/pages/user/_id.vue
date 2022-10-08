@@ -85,7 +85,7 @@ export default {
       // meta: [
       //   {hid: 'description', name: 'description', content: this.preData.user.name},
       //   {hid: 'og:type', property: 'og:type', content: 'website'},
-      //   {hid: 'og:title', property: 'og:title', content: `${this.preData.user.name} - NeosFrames`},
+      //   {hid: 'og:title', property: 'og:title', content: `${this.preData.user.name} - AiRT`},
       //   {hid: 'og:url', property: 'og:url', content: `${this.endpoint}/user/${this.$route.params.id}`},
       //   {hid: 'og:description', property: 'og:description', content: `${this.preData.user.name}'s Photos`},
       //   {
@@ -94,7 +94,7 @@ export default {
       //     content: this.preData.user.twitterImage
       //   },
       //   {hid: 'twitter:card', property: 'twitter:card', content: 'summary_large_image'},
-      //   {hid: 'twitter:title', property: 'twitter:title', content: `${this.preData.user.name} - NeosFrames`},
+      //   {hid: 'twitter:title', property: 'twitter:title', content: `${this.preData.user.name} - AiRT`},
       //   {hid: 'twitter:description', property: 'twitter:description', content: `${this.preData.user.name}'s Photos`},
       //   {
       //     hid: 'twitter:image',

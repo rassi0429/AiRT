@@ -47,7 +47,7 @@ export default {
         meta: [
           {hid: 'description', name: 'description', content: this.prePhotoData?.comment},
           {hid: 'og:type', property: 'og:type', content: 'website'},
-          {hid: 'og:title', property: 'og:title', content: `${this.prePhotoData?.comment} - NeosFrames`},
+          {hid: 'og:title', property: 'og:title', content: `${this.prePhotoData?.comment} - AiRT`},
           {hid: 'og:url', property: 'og:url', content: `${this.endpoint}/?modal=${this.$route.query.modal}`},
           {hid: 'og:description', property: 'og:description', content: this.prePhotoData?.comment},
           {
@@ -56,7 +56,7 @@ export default {
             content: this.prePhotoData?.url.replace("public","ogp")
           },
           {hid: 'twitter:card', property: 'twitter:card', content: 'summary_large_image'},
-          {hid: 'twitter:title', property: 'twitter:title', content: `${this.prePhotoData?.comment} - NeosFrames`},
+          {hid: 'twitter:title', property: 'twitter:title', content: `${this.prePhotoData?.comment} - AiRT`},
           {hid: 'twitter:description', property: 'twitter:description', content: this.prePhotoData?.comment},
           {
             hid: 'twitter:image',
@@ -67,7 +67,7 @@ export default {
       }
     } else {
       return {
-        titleTemplate : "NeosFrames"
+        titleTemplate : "AiRT"
       }
     }
   },
