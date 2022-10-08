@@ -176,7 +176,7 @@ export default {
             axios.post(data.data.result.uploadURL, params, { headers: { "content-type": 'multipart/form-data' } }).then(t => {
               axios.post(`${this.endpoint}/v1/photo`, {
                 url: t.data.result.variants.filter(k => k.includes("public"))[0],
-                comment: file.comment || this.title,
+                comment: file.name.replace(".png", "").replace(".jpg", ""),
                 tags: JSON.stringify([...this.tags, ...w])
               },
                 {
