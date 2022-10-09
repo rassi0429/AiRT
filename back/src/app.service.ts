@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Photo } from './photo.entity';
-import { Moment } from './moment.entity';
 import { Tag } from './tag.entity';
 import { UserInfo } from './userinfo.entity';
 import { createCanvas, loadImage } from 'canvas';
@@ -17,33 +16,31 @@ export class AppService {
   constructor(
     @InjectRepository(Photo)
     private photoRepository: Repository<Photo>,
-    @InjectRepository(Moment)
-    private momentRepository: Repository<Moment>,
     @InjectRepository(Tag)
     private tagRepository: Repository<Tag>,
     @InjectRepository(UserInfo)
     private userInfoRepository: Repository<UserInfo>,
   ) {}
-
-  async getMomentByUserId(uid: string, nsfw: boolean) {
-    console.log('getMomentByUserId', uid);
-    const data = await this.momentRepository.find({
-      where: { author: uid },
-      relations: ['photos', 'photos.tags'],
-      order: {
-        id: 'DESC',
-      },
-    });
-    if (!nsfw) {
-      const newdata = data.map((d) => {
-        d.photos = this.excludensfw(d.photos);
-        return d;
-      });
-      console.log(newdata);
-      return newdata;
-    }
-    return data;
-  }
+  //
+  // async getMomentByUserId(uid: string, nsfw: boolean) {
+  //   console.log('getMomentByUserId', uid);
+  //   const data = await this.momentRepository.find({
+  //     where: { author: uid },
+  //     relations: ['photos', 'photos.tags'],
+  //     order: {
+  //       id: 'DESC',
+  //     },
+  //   });
+  //   if (!nsfw) {
+  //     const newdata = data.map((d) => {
+  //       d.photos = this.excludensfw(d.photos);
+  //       return d;
+  //     });
+  //     console.log(newdata);
+  //     return newdata;
+  //   }
+  //   return data;
+  // }
 
   async getPhotoByUserId(uid: string, nsfw: boolean) {
     console.log('getPhotoByUserId', uid);
@@ -76,40 +73,10 @@ export class AppService {
 
   async getCountInfo(uid: string) {
     const photo = await this.photoRepository.count({ where: { author: uid } });
-    const moment = await this.momentRepository.count({
-      where: { author: uid },
-    });
-    return { photo, moment };
-  }
-
-  async createMomentUseByPhotoId(
-    uid: string,
-    title: string,
-    photoIds: number[],
-  ) {
-    const photos: Photo[] = [];
-    for (const item of photoIds) {
-      const photo = await this.photoRepository.findOne({ where: { id: item } });
-      if (photo) photos.push(photo);
-    }
-    const moment = new Moment();
-    moment.title = title;
-    moment.author = uid;
-    moment.photos = photos;
-    moment.createDate = new Date();
-    const m = await this.momentRepository.save(moment);
-    return m;
-  }
-
-  async getMomentById(momentId: number, nsfw: boolean) {
-    const data = await this.momentRepository.findOne({
-      where: { id: momentId },
-      relations: ['photos', 'photos.tags'],
-    });
-    if (!nsfw) {
-      data.photos = this.excludensfw(data.photos);
-    }
-    return data;
+    // const moment = await this.momentRepository.count({
+    //   where: { author: uid },
+    // });
+    return { photo };
   }
 
   async getPhotoByTag(
@@ -248,13 +215,13 @@ export class AppService {
     return this.photoRepository.remove(photo);
   }
 
-  async createMoment(title: string, author: string, photo: Photo[]) {
-    const newMoment = new Moment();
-    newMoment.title = title;
-    newMoment.author = author;
-    newMoment.photos = [...photo];
-    return this.momentRepository.save(newMoment);
-  }
+  // async createMoment(title: string, author: string, photo: Photo[]) {
+  //   const newMoment = new Moment();
+  //   newMoment.title = title;
+  //   newMoment.author = author;
+  //   newMoment.photos = [...photo];
+  //   return this.momentRepository.save(newMoment);
+  // }
 
   async updateUserInfo(uid, twitterId, name, iconUrl) {
     let user = await this.userInfoRepository.findOne({ where: { uid } });

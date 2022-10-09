@@ -208,36 +208,9 @@ export class AppController {
     return query.emap ? j2e(JSON.parse(JSON.stringify(data))) : data;
   }
 
-  @Get('v1/user/:id/moments')
-  async getUserMomentData(@Param('id') userid, @Query() query: emapDTO) {
-    const data = await this.appService.getMomentByUserId(userid, query.nsfw);
-    return query.emap ? j2e(JSON.parse(JSON.stringify(data))) : data;
-  }
-
   @Get('v1/user/:id/photos')
   async getUserPhotoData(@Param('id') userid, @Query() query: emapDTO) {
     const data = this.appService.getPhotoByUserId(userid, query.nsfw);
-    return query.emap ? j2e(JSON.parse(JSON.stringify(data))) : data;
-  }
-
-  @Post('v1/moment')
-  @UseGuards(AccountGuard)
-  async createMoment(
-    @Headers('token') token: string,
-    @Body() moment: CreateMomentDTO,
-  ) {
-    const data = await admin.auth().verifyIdToken(token);
-    return this.appService.createMomentUseByPhotoId(
-      data.uid,
-      moment.title,
-      moment.photos,
-    );
-  }
-
-  @Get('/v1/moment/:id')
-  async getMoment(@Param('id') momentId: number, @Query() query: emapDTO) {
-    const data = await this.appService.getMomentById(momentId, query.nsfw);
-    if (!data) throw new HttpException('NotFound', HttpStatus.NOT_FOUND);
     return query.emap ? j2e(JSON.parse(JSON.stringify(data))) : data;
   }
 }
