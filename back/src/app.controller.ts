@@ -19,7 +19,6 @@ import { AccountGuard } from './account.guard';
 const { cloudflare } = require('../credentials/secrets.json');
 import { Headers } from '@nestjs/common';
 import { ToBoolean } from './toboolean';
-import { NeosbotService } from './neosbot/neosbot.service';
 import { Transform } from 'class-transformer';
 import { IsInt, IsNumber, IsOptional, IsString, Max } from 'class-validator';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -81,10 +80,7 @@ class tagQueryDTO {
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly appService: AppService,
-    private readonly neosbotService: NeosbotService,
-  ) {}
+  constructor(private readonly appService: AppService) {}
 
   @Get('v1/imageReq')
   @UseGuards(AccountGuard)
@@ -236,16 +232,6 @@ export class AppController {
       moment.title,
       moment.photos,
     );
-  }
-
-  @Post('v1/neoslink/:id')
-  @UseGuards(AccountGuard)
-  async linkNeosAccount(@Headers('token') token: string, @Param('id') neosid) {
-    const user = await admin.auth().verifyIdToken(token);
-    console.log(neosid);
-    await this.neosbotService.sendMessage(neosid, 'test');
-    return 'neos';
-    // return this.appService.linkNeosAccess(data.uid, neosid);
   }
 
   @Get('/v1/moment/:id')
