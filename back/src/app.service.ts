@@ -21,26 +21,6 @@ export class AppService {
     @InjectRepository(UserInfo)
     private userInfoRepository: Repository<UserInfo>,
   ) {}
-  //
-  // async getMomentByUserId(uid: string, nsfw: boolean) {
-  //   console.log('getMomentByUserId', uid);
-  //   const data = await this.momentRepository.find({
-  //     where: { author: uid },
-  //     relations: ['photos', 'photos.tags'],
-  //     order: {
-  //       id: 'DESC',
-  //     },
-  //   });
-  //   if (!nsfw) {
-  //     const newdata = data.map((d) => {
-  //       d.photos = this.excludensfw(d.photos);
-  //       return d;
-  //     });
-  //     console.log(newdata);
-  //     return newdata;
-  //   }
-  //   return data;
-  // }
 
   async getPhotoByUserId(uid: string, nsfw: boolean) {
     console.log('getPhotoByUserId', uid);
@@ -73,9 +53,6 @@ export class AppService {
 
   async getCountInfo(uid: string) {
     const photo = await this.photoRepository.count({ where: { author: uid } });
-    // const moment = await this.momentRepository.count({
-    //   where: { author: uid },
-    // });
     return { photo };
   }
 
@@ -214,14 +191,6 @@ export class AppService {
     const photo = await this.photoRepository.findOne({ where: { id } });
     return this.photoRepository.remove(photo);
   }
-
-  // async createMoment(title: string, author: string, photo: Photo[]) {
-  //   const newMoment = new Moment();
-  //   newMoment.title = title;
-  //   newMoment.author = author;
-  //   newMoment.photos = [...photo];
-  //   return this.momentRepository.save(newMoment);
-  // }
 
   async updateUserInfo(uid, twitterId, name, iconUrl) {
     let user = await this.userInfoRepository.findOne({ where: { uid } });
