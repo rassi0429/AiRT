@@ -10,16 +10,8 @@
       div.user-header.is-flex
         img#avatar(:src="userInfo.user.twitterImage.replace('_normal', '')")
         a.has-text-white#UserName(target="_blank" :href="'https://twitter.com/i/user/'+ userInfo.user.twitterId") {{ userInfo.user.name }}
-        div.ml-auto(:class="{'oa': !momentShow,'on': momentShow}")
-          p.ViewToggleBtn(:class="{'notactive': momentShow}" @click="momentShow = !momentShow") Photos
-          p.ViewToggleBtn(:class="{'notactive': !momentShow}" @click="momentShow =  !momentShow") Moments
       div#imageGrid
-        grid-image(v-if="!momentShow" :images="photos")
-        div#MomentBlock(v-if="momentShow" v-for="(moment,i) in moments" :key="i")
-          a#MomentTitle(:href="'/moment/'+ moment.id") {{ moment.title || "NoTitle"  }}
-          img#linkBtn(src="/link.png", alt="link" :ref="'m' + moment.id" @click="copyMomentUrl(moment.id)")
-          img#twShareBtn(src="/tw.png", alt="share" @click="shareTwitter(moment)")
-          grid-image#MomentPhotoGrid(:images="moment.photos")
+        grid-image(:images="photos")
 </template>
 <script>
 import {mapActions, mapMutations, mapState} from "vuex";
@@ -44,9 +36,7 @@ export default {
   data() {
     return {
       uid: "",
-      momentShow: false,
       photos: [],
-      moments: [],
       userInfo: {
         user: {
           twitterImage: ""
@@ -82,26 +72,6 @@ export default {
     }
     return {
       title: this.preData.user.name,
-      // meta: [
-      //   {hid: 'description', name: 'description', content: this.preData.user.name},
-      //   {hid: 'og:type', property: 'og:type', content: 'website'},
-      //   {hid: 'og:title', property: 'og:title', content: `${this.preData.user.name} - AiRT`},
-      //   {hid: 'og:url', property: 'og:url', content: `${this.endpoint}/user/${this.$route.params.id}`},
-      //   {hid: 'og:description', property: 'og:description', content: `${this.preData.user.name}'s Photos`},
-      //   {
-      //     hid: 'og:image',
-      //     property: 'og:image',
-      //     content: this.preData.user.twitterImage
-      //   },
-      //   {hid: 'twitter:card', property: 'twitter:card', content: 'summary_large_image'},
-      //   {hid: 'twitter:title', property: 'twitter:title', content: `${this.preData.user.name} - AiRT`},
-      //   {hid: 'twitter:description', property: 'twitter:description', content: `${this.preData.user.name}'s Photos`},
-      //   {
-      //     hid: 'twitter:image',
-      //     property: 'twitter:image',
-      //     content: this.preData.user.twitterImage
-      //   },
-      // ]
     }
   },
   computed: {
@@ -113,7 +83,6 @@ export default {
     this.uid = await this.getUserInfo()
     await this.getUserTwitterInfo()
     this.photos = await this.getUserPhoto()
-    this.moments = await this.getUserMoment()
   },
   methods: {
     ...mapActions('auth', ['getUserInfo', "twitterLogin", "LogOut"]),
@@ -121,34 +90,9 @@ export default {
     async getUserPhoto() {
       const {data} = await axios.get(`${this.endpoint}/v1/user/${this.$route.params.id}/photos?nsfw=${this.$route.query.nsfw || false}`)
       return data
-    },
-    async getUserMoment() {
-      const {data} = await axios.get(`${this.endpoint}/v1/user/${this.$route.params.id}/moments?nsfw=${this.$route.query.nsfw || false}`)
-      return data
-    },
-    async getUserTwitterInfo() {
+    },    async getUserTwitterInfo() {
       const {data} = await axios.get(`${this.endpoint}/v1/user/${this.$route.params.id}`)
       this.userInfo = data
-    },
-    copyMomentUrl(id) {
-      const clipboardText = `https://image.kokoa.dev/moment/${id}`;
-      try {
-        navigator.clipboard.writeText(clipboardText);
-        this.$refs['m' + id][0].src = '/check.png'
-        setTimeout(() => {
-          this.$refs['m' + id][0].src = '/link.png'
-        }, 2000)
-      } catch {
-        alert(`https ni site ne`)
-      }
-    },
-    shareTwitter({id, title}) {
-      this.$openTwitterShare({
-        type: 'moment',
-        id,
-        name: this.preData?.user.name,
-        title
-      });
     }
   }
 }
