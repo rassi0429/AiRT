@@ -2,12 +2,16 @@
   div
     div.grid-parent
       div.grid( v-for="(a, k) in  separate(images, rows)" :key="k" :style="{'max-width': `${100 / rows}%`}")
-        img.grid-image(:src="getlink(img)" v-for="(img, i) in a" :key="i" :class="{'last': i === (a.length - 1)}" @click="openModal(img)")
+        div(v-for="(img, i) in a" :key="i")
+          img.grid-image(:src="getlink(img)"  :class="{'last': i === (a.length - 1)}" @click="openModal(img)")
+          // sbutton(@click="toggleFav(img.id)") ♡
     div.bottom_point(ref="bottomPoint")
 </template>
 
 <script>
-import {mapMutations, mapState} from "vuex";
+import {mapActions, mapMutations, mapState} from "vuex";
+import axios from "axios";
+import auth from "@/plugins/auth";
 
 export default {
   name: "GridImage",
@@ -25,6 +29,7 @@ export default {
     }
   },
   computed: {
+    ...mapState(["endpoint"]),
     ...mapState("modal", ["isModalOpen", "modalData"])
   },
   mounted() {
@@ -33,14 +38,22 @@ export default {
   },
   methods: {
     ...mapMutations('modal', ['openModal', "closeModal","setWidth"]),
+    ...mapActions('auth', ['getUserInfo', "twitterLogin"]),
+    ...mapMutations('upload', ['closeModal']),
+    async toggleFav(id) {
+      console.log(id)
+      const user = await auth()
+      const token = await user.getIdToken(true)
+      await axios.post(`${this.endpoint}/v1/user/fav/${id}`, {}, {headers: {token}})
+    },
     getlink(image) {
-      const nsfwTags = ['nsfw', 'r18'];
-      const name = image.tags.map(t => t.name)
-      if(name.includes(nsfwTags[0]) || name.includes(nsfwTags[1])) {
-        return image.url.replace('public','nsfw')
-      } else {
+      // const nsfwTags = ['nsfw', 'r18'];
+      // const name = image.prompt.map(t => t.name)
+      // if(name.includes(nsfwTags[0]) || name.includes(nsfwTags[1])) {
+      //   return image.url.replace('public','nsfw')
+      // } else {
         return image.url.replace('public','thumbnail')
-      }
+      // }
     },
     separate(_, rows) {
       const img = []

@@ -2,16 +2,13 @@ import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Photo } from './photo.entity';
 
 @Entity()
-export class Tag {
+export class Prompt {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'text' })
   name: string;
 
-  @Column({ default: '' })
-  thumbnail?: string;
-
-  @ManyToMany((type) => Photo, (photo) => photo.tags)
+  @ManyToMany((type) => Photo, (photo) => photo.prompt)
   photos: Photo[];
 }

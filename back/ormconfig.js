@@ -1,5 +1,5 @@
 module.exports = {
-  type: 'mysql',
+  type: 'mariadb',
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT) || 3388,
   username: 'neos',

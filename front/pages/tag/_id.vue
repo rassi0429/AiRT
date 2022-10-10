@@ -2,6 +2,8 @@
   div
     img#uploadBtn(v-show="uid" @click="openModal" tag="img" src="/upload_btn.png")
     nuxt-link#loginBtn(v-show="uid" :to="'/user/'+uid" tag="img" :src="photoUrl")
+    img#r18Btn(v-if="uid && !r18" @click="onR18" tag="img" src="/r18_off.png")
+    img#r18Btn(v-if="uid && r18" @click="offR18" tag="img" src="/r18_on.png")
     div#headerBackground
     img#GridGradation(src="/top_gradation.png")
     div#content
@@ -41,6 +43,11 @@ export default {
       photoUrl: ""
     }
   },
+  watch: {
+    async r18(val, old) {
+      await this.loadImage()
+    }
+  },
   head() {
     if (this.$route.query.modal) {
       return {
@@ -68,7 +75,7 @@ export default {
       }
     }
      return {
-       title: this.preData.name,
+       title: this.preData?.name,
        meta: [
          {hid: 'description', name: 'description', content: this.preData?.name},
          {hid: 'og:type', property: 'og:type', content: 'website'},
@@ -93,19 +100,24 @@ export default {
   },
   computed: {
     ...mapState(["endpoint"]),
-    ...mapState(`upload`, ["isUploadModal"])
+    ...mapState(`upload`, ["isUploadModal"]),
+    ...mapState("store", ["r18"]),
   },
   async mounted() {
     this.loadImage()
     this.uid = (await this.getUserInfo())
     const user = await auth()
-    this.photoUrl = user.photoURL
+
+    if(user) {
+      this.photoUrl = user?.providerData[0]?.photoURL
+    }
   },
   methods: {
     ...mapMutations(`upload`, ["openModal"]),
     ...mapActions(`auth`, ["getUserInfo"]),
+    ...mapActions("store",["toggleR18", "onR18", "offR18"]),
     async loadImage() {
-      const {data} = await axios.get(`${this.endpoint}/v1/tag/${this.$route.params.id}?nsfw=${this.$route.query.nsfw || false}`)
+      const {data} = await axios.get(`${this.endpoint}/v1/tag/${this.$route.params.id}?nsfw=${this.r18 || false}`)
       this.images = data.photos
     },
     shareTwitter() {
@@ -167,7 +179,7 @@ export default {
 #uploadBtn {
   position: fixed;
   right: 10px;
-  bottom: 90px;
+  bottom: 115px;
   max-width: 50px;
   opacity: 0.2;
 }
@@ -179,7 +191,7 @@ export default {
 #loginBtn {
   position: fixed;
   right: 10px;
-  bottom: 30px;
+  bottom: 10px;
   max-width: 50px;
   opacity: 0.5;;
   border-radius: 100%;
@@ -187,6 +199,19 @@ export default {
 
 #loginBtn:hover {
   opacity: 0.9
+}
+
+#r18Btn:hover {
+  opacity: 0.5;
+}
+
+#r18Btn {
+  position: fixed;
+  right: 10px;
+  bottom: 65px;
+  width: 50px;
+  max-width: 50px;
+  opacity: 0.4;
 }
 
 #twShareBtn {

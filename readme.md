@@ -1,11 +1,6 @@
 <h1 align="center">
-  <a href="https://image.kokoa.dev/"><img src="./public.jpg" alt="AiRT" width="800"></a>
+  <a href="https://airt.cc/"><img src="./ogp.png" alt="AiRT" width="800"></a>
   <br>
-  Neos Frames
+  AiRT
 </h1>
 
-## 問題を発見しましたか？
-あなたは[issue](https://github.com/rassi0429/image.kokoa.dev/issues)を発行することができます。
-
-## 開発に貢献したいですか？
-[dev doc](./developer-doc.md)

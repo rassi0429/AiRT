@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapActions, mapMutations, mapState} from "vuex";
 import PhotoViewModal from "@/components/modal";
 import UploadModal from "@/components/upload";
 
@@ -15,9 +15,17 @@ export default {
   name: "NormalLayout",
   components: {UploadModal, PhotoViewModal},
   computed: {
+    ...mapState(["endpoint"]),
     ...mapState("modal", ["isModalOpen"]),
     ...mapState("upload", ["isUploadModal"])
   },
+  methods: {
+    ...mapMutations("store", ["setFavs"]),
+    ...mapActions("store", ["updateFavs"]),
+  },
+  mounted() {
+    this.updateFavs()
+  }
 }
 </script>
 

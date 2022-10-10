@@ -1,23 +1,50 @@
 <template lang="pug">
-  div.upload-modal-wrap(v-if="isUploadModal")
+  div.upload-modal-wrap#outmodal(v-if="isUploadModal")
     div.columns.upload-modal(@mouseup.stop @dragenter="dragEnter" @dragleave="dragLeave" @dragover.prevent @drop.prevent="dropFile")
-      input(type="file" accept="image/*" ref="file_upload" style="display: none" @change="onFileChange" multiple)
+      input(type="file" accept="image/*" ref="file_upload" style="display: none" @change="dropFile" multiple)
       img#CloseBtn(@click="closeModal" src="/close.png")
-      div.column.is-5#EditField(v-if="!isUploading")
-        div#UploadBox( @click="$refs.file_upload.click()")
+      div.column.is-12#EditField(v-if="files.length === 0 || (dropCount > 0)")
+        div#UploadBox(@click="$refs.file_upload.click()")
           img#UploadIcon( src="/upload.png")
           p#UploadInfo Click or Drop a Image(s)
-        div#SubmitBtn
-          img(@click="submit" src="/upload_btn.png")
-          p#UploadBtnLabel Upload
-      div.column.is-7(v-if="!isUploading")
-        p#ImageCounter {{ this.files.length }} images
+        div
+          p.ml-2
+            a(target="_blank" href="/tos") 利用規約、
+            a(target="_blank" href="/pp" ) プライバシーポリシー
+            | に同意してからアップロードしてください。
+      div.column.is-12(v-if="files.length !== 0 && !(dropCount > 0) && !isUploading" @dragleave.stop v-on:dragenter.self="dragEnter($event)")
+        nav.navbar.is-black
+          div.navbar-brand
+            div.navbar-item
+              p#ImageCounter {{ this.files.length }} images ※R18の画像はチェックをつけてください
+          div.navbar-end
+            div.navbar-item
+              div.field.is-grouped
+                p.control
+                  button.button(@click="submit()") Upload
         div.upload-img
-          div.is-flex(v-for="(file,index) in files" :key="index" )
-            div.is-flex-1
+          div.is-flex.preview-content(v-for="(file,index) in files" :key="index" )
+            div.preview-image
               img(:src="getFileUrl(file)")
-            div.is-flex-3.is-flex
-              textarea.is-flex-grow-1#commentField(type="text" :value="file.comment" @change="(text) => changeComment({text,index})" placeholder="comment")
+            div.preview-box.section(v-if="file.generator === 'NovelAI'")
+              span.tag.is-medium.is-success NovelAI
+              div.field
+                label.label.has-text-white Prompts
+                div.tags
+                  span.tag(v-for="(i,index) in file.prompt") {{ i }}
+                label.checkbox.has-text-white
+                  input(type="checkbox" v-model="file.nsfw")
+                  | &nbsp;This is R18 Image
+              img#deleteBtn(@click="deleteFile(index)" src="/delete.png")
+            div.preview-box.section(v-if="file.generator !== 'NovelAI'")
+              span.tag.is-medium.is-link Other
+              div.field
+                label.label.has-text-white Comment
+                div.control
+                  textarea.input(type="text" v-model="file.comment")
+                label.checkbox.has-text-white
+                  input(type="checkbox" v-model="file.nsfw")
+                  | &nbsp;This is R18 Image
               img#deleteBtn(@click="deleteFile(index)" src="/delete.png")
       div.h100.p0.center#uploadingAnims(v-if="isUploading")
         div
@@ -26,9 +53,7 @@
 </template>
 <script>
 import axios from "axios";
-import EXIF from "exif-js";
 import {mapActions, mapState, mapMutations} from "vuex";
-// import crc32 from "png-metadata/crc32";
 import auth from "@/plugins/auth";
 
 export default {
@@ -38,11 +63,11 @@ export default {
       isEnter: false,
       files: [],
       title: new Date().toLocaleDateString(),
-      tags: [],
       uid: "",
       tmpTag: "",
       uploadCount: 0,
-      isUploading: false
+      isUploading: false,
+      dropCount: 0
     }
   },
   computed: {
@@ -55,67 +80,55 @@ export default {
   methods: {
     ...mapActions('auth', ['getUserInfo', "twitterLogin"]),
     ...mapMutations('upload', ['closeModal']),
-    getComment(file) {
-      return new Promise((resolve) => {
-        EXIF.getData(file, function () {
-          const allMetaData = EXIF.getAllTags(this);
-          console.log(allMetaData)
-          console.log(allMetaData.UserComment)
-          if (allMetaData.UserComment) {
-            const binary = allMetaData.UserComment.slice(8)
-            const result = []
-            for (let j = 0; j < binary.length; j += 2) {
-              result.push(binary[j] * 256 + binary[j + 1])
-            }
-            console.log(String.fromCharCode(...result))
-            resolve(JSON.parse(String.fromCharCode(...result)))
-          }
-          resolve(null)
-        });
-      })
-    },
     dragEnter() {
       this.isEnter = true;
+      this.dropCount++
     },
-    dragLeave() {
-      this.isEnter = false;
+    dragLeave(e) {
+      if (e.target.id === "UploadBox") {
+        this.isEnter = false;
+        this.dropCount = 0
+      } else {
+        this.isEnter = false;
+        this.dropCount--
+      }
     },
-    dropFile: async function () {
-      const files = event.dataTransfer.files
-      const fileArray = Array.from(files)
-      for (const f of fileArray) {
-        const i = fileArray.indexOf(f);
-        console.log("file", f)
+    getMetadata(file) {
+      return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.readAsArrayBuffer(f);
+        reader.readAsArrayBuffer(file);
         reader.onload = () => {
           const metadata = this.readMetadata(reader.result)
-          console.log(metadata.tEXt)
-          console.log(JSON.parse(metadata.tEXt.Comment))
+          resolve(metadata)
         };
-        // const blob = new Blob("blob",f)
-        const result = await this.getComment(f)
-        if (result) {
-          fileArray[i].comment = "taken at " + result.locationName
-          result.presentUserNameArray.forEach(k => {
-            console.log(k)
-            if (!this.tags.includes(k)) {
-              this.tags.push(k)
+      })
+    },
+    dropFile: async function () {
+      const files = event.target.files || event.dataTransfer.files
+      const fileArray = Array.from(files)
+      for (const f of fileArray) {
+        try {
+          if(f.type === "image/png") {
+            const i = fileArray.indexOf(f);
+            const metadata = await this.getMetadata(f)
+            if(metadata.tEXt) {
+              fileArray[i].prompt = metadata.tEXt.Description.split(",").map(t => t.trim()).filter(t => t.length !== 0)
+              console.log(metadata)
+              fileArray[i].rawMetadata = metadata.tEXt
+              fileArray[i].generator = "NovelAI"
+              fileArray[i].nsfw = fileArray[i].prompt.filter(t => t.includes("nsfw")).length >= 1
             }
-          })
-        } else {
-          fileArray[i].comment = ""
+          }
+        } catch (e) {
+          console.log("failed to get metadata")
         }
       }
       this.files.push(...fileArray)
       this.isEnter = false;
+      this.dropCount = 0
     },
     deleteFile(index) {
       this.files.splice(index, 1)
-    },
-    changeComment({index, text}) {
-      console.log(text.target.value)
-      this.files[index].comment = text.target.value
     },
     getFileUrl(file) {
       return URL.createObjectURL(file)
@@ -127,20 +140,13 @@ export default {
       await axios.post(`${this.endpoint}/v1/user`, {}, {headers: {token}})
       this.isUploading = true
       Promise.all(this.files.map(f => this.uploadImage(f, token))).then(async (w) => {
-        // const photos = w.map(res => res.data.id)
-        // // this.$router.push("/")
-        // const {data} = await axios.post(`${this.endpoint}/v1/moment`, {title: this.title, photos}, {headers: {token}})
-        // this.closeModal()
-        // this.uploadCount = 0
-        // this.$router.push("/moment/" + data.id)
       }).catch(() => {
         alert("アップロードに失敗しました")
       }).finally(() => {
         this.files = []
-        this.tags = []
         this.isUploading = false
         this.closeModal()
-        this.$router.push("/")
+        this.$router.go({path: this.$router.currentRoute.path, force: true});
       })
     },
     uploadImage(file, token) {
@@ -148,32 +154,16 @@ export default {
         try {
           axios.get(`${this.endpoint}/v1/imageReq`, {headers: {token}}).then(data => {
             const params = new FormData();
-            console.log(file)
-            const words = file.name.split(",").map(t => t.trim())
-            console.log(words)
-            let w = []
-            try {
-              if (words.length > 1) {
-                if (words[words.length - 1].startsWith("s-")) {
-                  w = [...(words.map(t => t.replace(".png", "").replace(".jpg", "")))]
-                } else {
-                  const _seed = (words[words.length - 1]).split("s-")
-                  const seed = _seed[1].replace(".png", "").replace(".jpg", "")
-                  console.log(_seed, seed)
-                  words.pop()
-                  w = [...words, _seed[0], "s-" + seed]
-                }
-              }
-            } catch (e) {
-              console.log(e)
-            }
 
             params.append('file', file);
             axios.post(data.data.result.uploadURL, params, {headers: {"content-type": 'multipart/form-data'}}).then(t => {
               axios.post(`${this.endpoint}/v1/photo`, {
                   url: t.data.result.variants.filter(k => k.includes("public"))[0],
-                  comment: file.name.replace(".png", "").replace(".jpg", ""),
-                  tags: JSON.stringify([...this.tags, ...w])
+                  comment: file.comment || file.name.replace(".png", "").replace(".jpg", ""),
+                  prompt: file.prompt,
+                  rawMetadata: file.rawMetadata,
+                  nsfw: file.nsfw || false,
+                  generator: file.generator
                 },
                 {
                   headers: {
@@ -191,24 +181,24 @@ export default {
         }
       })
     },
-    async onFileChange(e) {
+    onFileChange(e) {
       const files = e.target.files || e.dataTransfer.files;
       const fileArray = Array.from(files)
-      for (const f of fileArray) {
-        const i = fileArray.indexOf(f);
-        const result = await this.getComment(f)
-        if (result) {
-          fileArray[i].comment = "taken at " + result.locationName
-          result.presentUserNameArray.forEach(k => {
-            console.log(k)
-            if (!this.tags.includes(k)) {
-              this.tags.push(k)
-            }
-          })
-        } else {
-          fileArray[i].comment = ""
-        }
-      }
+      // for (const f of fileArray) {
+      //   // const i = fileArray.indexOf(f);
+      //   // const result = await this.getComment(f)
+      //   // if (result) {
+      //   //   fileArray[i].comment = "taken at " + result.locationName
+      //   //   result.presentUserNameArray.forEach(k => {
+      //   //     console.log(k)
+      //   //     if (!this.tags.includes(k)) {
+      //   //       this.tags.push(k)
+      //   //     }
+      //   //   })
+      //   // } else {
+      //   //   fileArray[i].comment = ""
+      //   // }
+      // }
       this.files.push(...fileArray)
     },
     addTag() {
@@ -407,8 +397,29 @@ export default {
 
 <style scoped>
 .upload-img {
-  max-height: 85%;
-  overflow-y: scroll;
+  height: 80%;
+  height: 80%;
+  overflow-y: auto;
+}
+
+.preview-image {
+  height: 200px;
+  width: 200px;
+}
+
+.preview-content {
+  padding-bottom: 1em;
+}
+
+.preview-box {
+  position: relative;
+  width: 100%;
+}
+
+.preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .upload-img::-webkit-scrollbar {
@@ -476,13 +487,13 @@ p {
 }
 
 #EditField {
-  position: relative;
+  height: 100%;
 }
 
 #UploadBox {
   opacity: 0.2;;
   min-height: 200px;
-  max-height: 300px;
+  height: 90%;
   -webkit-user-drag: none;
   text-align: center;
   padding-top: 3em;
@@ -491,14 +502,18 @@ p {
 }
 
 #UploadBox:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #UploadIcon {
+  position: relative;
+  top: calc(50% - 100px);
   width: 100px;
 }
 
 #UploadInfo {
+  position: relative;
+  top: calc(50%);
   user-select: none;
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -632,6 +647,9 @@ p {
 }
 
 #deleteBtn {
+  position: absolute;
+  top: 10px;
+  right: 50px;
   opacity: 0.2;;
   height: 30px;
   padding-left: 5px;

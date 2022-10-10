@@ -23,7 +23,6 @@ import { Transform } from 'class-transformer';
 import { IsInt, IsNumber, IsOptional, IsString, Max } from 'class-validator';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const j2e = require('json2emap');
-
 class PhotosDTO {
   limit?: number;
   page?: number;
@@ -38,17 +37,11 @@ class PhotosDTO {
 class CreatePhotosDTO {
   url: string;
   comment: string;
-  tags: string;
-}
-
-class UpdatePhotoDTO {
-  comment: string;
-  tags: string[];
-}
-
-class CreateMomentDTO {
-  title: string;
-  photos: number[];
+  generator: string;
+  prompt: string[];
+  rawMetadata: object;
+  @ToBoolean()
+  nsfw?: boolean;
 }
 
 class emapDTO {
@@ -111,12 +104,16 @@ export class AppController {
     @Headers('token') token: string,
     @Body() create: CreatePhotosDTO,
   ) {
+    console.log(create);
     const data = await admin.auth().verifyIdToken(token);
     return this.appService.addPhoto(
-      create.url,
-      create.comment,
+      create.url || '',
+      create.comment || '',
       data.uid,
-      JSON.parse(create.tags),
+      create.prompt || [],
+      create.rawMetadata || {},
+      create.nsfw || false,
+      create.generator || '',
     );
   }
 
@@ -124,39 +121,32 @@ export class AppController {
   async getPhoto(@Param('id') id: number, @Query() query: emapDTO) {
     if (!id) {
       throw new HttpException('bad request', HttpStatus.BAD_REQUEST);
-      return;
     }
     const photo = await this.appService.getPhotoById(id, query.nsfw);
     if (!photo) {
       throw new HttpException('not found', HttpStatus.NOT_FOUND);
-      return;
     }
     return query.emap ? j2e(JSON.parse(JSON.stringify(photo))) : photo;
   }
 
-  @Post('v1/photo/:id')
+  @Post('v1/user/fav/:id')
   @UseGuards(AccountGuard)
-  async updatePhoto(
-    @Param('id') id: number,
-    @Headers('token') token: string,
-    @Body() updatePhoto: UpdatePhotoDTO,
-  ) {
-    const { uid } = await admin.auth().verifyIdToken(token);
-    const photo = await this.appService.getPhotoById(id, true);
-    if (photo.author !== uid) {
-      throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
-      return;
+  async toggleFav(@Param('id') id: number, @Headers('token') token: string) {
+    // console.log(token);
+    const data = await admin.auth().verifyIdToken(token);
+    if (!id) {
+      throw new HttpException('bad request', HttpStatus.BAD_REQUEST);
     }
-    return this.appService.updatePhotoById(
-      id,
-      updatePhoto.comment,
-      updatePhoto.tags,
-    );
+    // console.log(data.uid);
+    const result = await this.appService.toggleFavo(id, data.uid);
+    return result;
+    // TODO
   }
 
   @Delete('v1/photo/:id')
   @UseGuards(AccountGuard)
   async deletePhoto(@Param('id') id: number, @Headers('token') token: string) {
+    console.log(token);
     const { uid } = await admin.auth().verifyIdToken(token);
     const photo = await this.appService.getPhotoById(id, true);
     if (photo.author !== uid) {

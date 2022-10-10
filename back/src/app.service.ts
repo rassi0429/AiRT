@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Photo } from './photo.entity';
-import { Tag } from './tag.entity';
+import { Prompt } from './prompt.entity';
 import { UserInfo } from './userinfo.entity';
 import { createCanvas, loadImage } from 'canvas';
 import axios from 'axios';
@@ -16,8 +16,8 @@ export class AppService {
   constructor(
     @InjectRepository(Photo)
     private photoRepository: Repository<Photo>,
-    @InjectRepository(Tag)
-    private tagRepository: Repository<Tag>,
+    @InjectRepository(Prompt)
+    private promptRepository: Repository<Prompt>,
     @InjectRepository(UserInfo)
     private userInfoRepository: Repository<UserInfo>,
   ) {}
@@ -26,7 +26,7 @@ export class AppService {
     console.log('getPhotoByUserId', uid);
     const photos = await this.photoRepository.find({
       where: { author: uid },
-      relations: ['tags'],
+      relations: ['prompt'],
       order: {
         id: 'DESC',
       },
@@ -42,7 +42,7 @@ export class AppService {
       where: {
         id,
       },
-      relations: ['tags'],
+      relations: ['prompt'],
     });
     if (nsfw) {
       return photo;
@@ -63,9 +63,9 @@ export class AppService {
     page = 0,
     nsfw = false,
   ) {
-    const result = await this.tagRepository.findOne({
+    const result = await this.promptRepository.findOne({
       where: { name: tag },
-      relations: [`photos`, `photos.tags`],
+      relations: [`photos`, `photos.prompt`],
     });
     if (!result) return null;
     if (order !== 'ASC') {
@@ -83,7 +83,7 @@ export class AppService {
   }
 
   async getTags() {
-    const result = await this.tagRepository.find();
+    const result = await this.promptRepository.find();
     return result;
   }
 
@@ -91,19 +91,39 @@ export class AppService {
     const photo = await this.photoRepository.findOne({ where: { id } });
     const newTags = [];
     for (const item of tags) {
-      const t = await this.tagRepository.findOne({ name: item });
+      const t = await this.promptRepository.findOne({ name: item });
       if (t) {
         newTags.push(t);
       } else {
-        const newTag = new Tag();
+        const newTag = new Prompt();
         newTag.name = item;
-        const tag = await this.tagRepository.save(newTag);
+        const tag = await this.promptRepository.save(newTag);
         newTags.push(tag);
       }
     }
     photo.comment = comment;
-    photo.tags = newTags;
+    photo.prompt = newTags;
     return this.photoRepository.save(photo);
+  }
+
+  async toggleFavo(id, uid) {
+    const photo = await this.photoRepository.findOne({ where: { id } });
+    if (photo) {
+      const user = await this.userInfoRepository.findOne({
+        where: { uid },
+        relations: ['favs'],
+      });
+      if (user) {
+        if (user.favs.filter((f) => f.id === photo.id).length >= 1) {
+          user.favs = user.favs.filter((f) => f.id !== photo.id);
+        } else {
+          user.favs.push(photo);
+        }
+        await this.userInfoRepository.save(user);
+        return true;
+      }
+    }
+    return false;
   }
 
   async getPhotos(
@@ -116,12 +136,12 @@ export class AppService {
     let photos: Photo[] = [];
     if (tags.length !== 0) {
       console.log('tag');
-      const tag = this.tagRepository.findOne({ where: { name: 'NULL' } });
+      const tag = this.promptRepository.findOne({ where: { name: 'NULL' } });
       photos = await this.photoRepository.find({
         take: limit,
         skip: limit * page,
         where: { tags: In([tag]) },
-        relations: ['tags'],
+        relations: ['prompt'],
         order: {
           id: 'DESC',
         },
@@ -133,7 +153,7 @@ export class AppService {
         where: {
           author: user,
         },
-        relations: ['tags'],
+        relations: ['prompt'],
         order: {
           id: 'DESC',
         },
@@ -142,7 +162,7 @@ export class AppService {
       photos = await this.photoRepository.find({
         take: limit,
         skip: limit * page,
-        relations: ['tags'],
+        relations: ['prompt'],
         order: {
           id: 'DESC',
         },
@@ -155,33 +175,38 @@ export class AppService {
   }
 
   excludensfw(photos: Photo[]) {
-    const nsfwTags = ['nsfw', 'r18'];
     return photos.filter((p) => {
-      const tags = p.tags.map((t) => t.name.toLowerCase());
-      if (tags.includes(nsfwTags[0]) || tags.includes(nsfwTags[1])) {
-        return false;
-      } else {
-        return true;
-      }
+      return !p.nsfw;
     });
   }
 
-  async addPhoto(url: string, comment: string, author: string, tags: string[]) {
+  async addPhoto(
+    url: string,
+    comment: string,
+    author: string,
+    prompt: string[],
+    rawMetadata: object,
+    nsfw: boolean,
+    generator: string,
+  ) {
     const newPhoto = new Photo();
     newPhoto.url = url;
     newPhoto.comment = comment;
     newPhoto.author = author;
     newPhoto.createDate = new Date();
-    newPhoto.tags = [];
-    for (const item of tags) {
-      const t = await this.tagRepository.findOne({ name: item });
+    newPhoto.prompt = [];
+    newPhoto.rawMetadata = rawMetadata;
+    newPhoto.nsfw = nsfw;
+    newPhoto.generator = generator;
+    for (const item of prompt) {
+      const t = await this.promptRepository.findOne({ name: item });
       if (t) {
-        newPhoto.tags.push(t);
+        newPhoto.prompt.push(t);
       } else {
-        const newTag = new Tag();
+        const newTag = new Prompt();
         newTag.name = item;
-        const tag = await this.tagRepository.save(newTag);
-        newPhoto.tags.push(tag);
+        const tag = await this.promptRepository.save(newTag);
+        newPhoto.prompt.push(tag);
       }
     }
     return this.photoRepository.save(newPhoto);
@@ -203,6 +228,9 @@ export class AppService {
   }
 
   async getUserInfo(uid) {
-    return this.userInfoRepository.findOne({ where: { uid } });
+    return this.userInfoRepository.findOne({
+      where: { uid },
+      relations: ['favs', 'favs.prompt'],
+    });
   }
 }

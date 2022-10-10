@@ -7,7 +7,7 @@ export const state = () => ({
     author: "",
     url: "",
     comment: "",
-    tags: [],
+    prompt: [],
     id: 0
   },
   username: "",
@@ -56,22 +56,22 @@ export const mutations = {
   openModal(state, data) {
     if (state.isModalOpen) return
 
-    const nsfwTags = ['nsfw', 'r18'];
-    const name = data.tags.map(t => t.name)
-    if (name.includes(nsfwTags[0]) || name.includes(nsfwTags[1])) {
-      const useraction = window.confirm("エッチな画像が含まれます。あなたは18歳以上ですか？")
-      if (!useraction) {
-        window.location = "https://kids.yahoo.co.jp/"
-      } else {
-        state.isModalOpen = true
-        state.modalData = data
-        this.$router.replace({'query': {modal: data.id}});
-      }
-    } else {
+    // const nsfwTags = ['nsfw', 'r18'];
+    // const name = data.prompt.map(t => t.name)
+    // if (name.includes(nsfwTags[0]) || name.includes(nsfwTags[1])) {
+    //   const useraction = window.confirm("エッチな画像が含まれます。あなたは18歳以上ですか？")
+    //   if (!useraction) {
+    //     window.location = "https://kids.yahoo.co.jp/"
+    //   } else {
+    //     state.isModalOpen = true
+    //     state.modalData = data
+    //     this.$router.replace({'query': {modal: data.id}});
+    //   }
+    // } else {
       state.isModalOpen = true
       state.modalData = data
       this.$router.replace({'query': {modal: data.id}});
-    }
+    // }
   },
 
   closeModal(state) {
@@ -80,7 +80,7 @@ export const mutations = {
       author: "",
       url: "",
       comment: "",
-      tags: []
+      prompt: []
     }
     this.$router.replace({'query': null});
     state.isEditing = false
@@ -95,7 +95,7 @@ export const mutations = {
   updateEditState(state, data) {
     state.isEditing = data
     if (data) {
-      state.editingTag = state.modalData.tags.map(t => t.name)
+      state.editingTag = state.modalData.prompt.map(t => t.name)
     }
   },
   deleteTag(state, data) {

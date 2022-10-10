@@ -2,9 +2,11 @@
   div
     img#TopGradation(src="/top_gradation.png")
     img#uploadBtn(v-show="uid" @click="openModal" tag="img" src="/upload_btn.png")
+    img#r18Btn(v-if="uid && !r18" @click="onR18" tag="img" src="/r18_off.png")
+    img#r18Btn(v-if="uid && r18" @click="offR18" tag="img" src="/r18_on.png")
     nuxt-link#loginBtn(v-show="uid" :to="'/user/'+uid" tag="img" :src="photoUrl")
     img#uploadBtn(v-show="!uid" @click="twitterLogin" src="/login_btn.png")
-    a#CodeBtn(href="https://github.com/rassi0429/image.kokoa.dev")
+    a#CodeBtn(target="_blank" href="https://github.com/rassi0429/image.kokoa.dev")
       img(src="/code.png")
     div#imageroot
       grid-image(:images="images" replace="thumbnail")
@@ -71,10 +73,17 @@ export default {
       }
     }
   },
+  watch: {
+    async r18(val, old) {
+      console.log("changed!")
+      await this.getImage()
+    }
+  },
   computed: {
     ...mapState(["endpoint"]),
     ...mapState("modal", ["isModalOpen"]),
-    ...mapState("upload", ["isUploadModal"])
+    ...mapState("upload", ["isUploadModal"]),
+    ...mapState("store", ["r18"]),
   },
   async mounted() {
     this.uid = (await this.getUserInfo())
@@ -88,13 +97,14 @@ export default {
   methods: {
     ...mapActions('auth', ['getUserInfo', "twitterLogin", "LogOut"]),
     ...mapMutations('upload', ['openModal', "closeModal"]),
+    ...mapActions("store",["toggleR18", "onR18", "offR18"]),
     async getImage() {
-      const {data} = await axios.get(`${this.endpoint}/v1/photos?page=${this.page}&nsfw=${this.$route.query.nsfw || false}`)
+      const {data} = await axios.get(`${this.endpoint}/v1/photos?page=${this.page}&nsfw=${this.r18 || false}`)
       this.images = data
     },
     async addImage() {
       this.page += 1
-      const {data} = await axios.get(`${this.endpoint}/v1/photos?page=${this.page}&nsfw=${this.$route.query.nsfw || false}`)
+      const {data} = await axios.get(`${this.endpoint}/v1/photos?page=${this.page}&nsfw=${this.r18 || false}`)
       if (data.length === 0) {
         this.page -= 1
       }
@@ -144,6 +154,7 @@ export default {
   position: fixed;
   right: 10px;
   bottom: 60px;
+  width: 50px;
   max-width: 50px;
   opacity: 0.5;;
   border-radius: 100%;
@@ -156,9 +167,22 @@ export default {
 #uploadBtn {
   position: fixed;
   right: 10px;
-  bottom: 110px;
+  bottom: 160px;
   max-width: 50px;
   opacity: 0.2;
+}
+
+#r18Btn:hover {
+  opacity: 0.5;
+}
+
+#r18Btn {
+  position: fixed;
+  right: 10px;
+  bottom: 115px;
+  width: 50px;
+  max-width: 50px;
+  opacity: 0.4;
 }
 
 #uploadBtn:hover {

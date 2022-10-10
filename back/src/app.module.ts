@@ -3,13 +3,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Photo } from './photo.entity';
-import { Tag } from './tag.entity';
+import { Prompt } from './prompt.entity';
 import { UserInfo } from './userinfo.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(),
-    TypeOrmModule.forFeature([Photo, Tag, UserInfo]),
+    TypeOrmModule.forFeature([Photo, Prompt, UserInfo]),
   ],
   controllers: [AppController],
   providers: [AppService],

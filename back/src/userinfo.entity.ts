@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  Unique,
+  ManyToMany,
+} from 'typeorm';
+import { Photo } from './photo.entity';
 @Entity()
 @Unique(['id'])
 export class UserInfo {
@@ -19,4 +26,7 @@ export class UserInfo {
 
   @Column({ type: 'text' })
   twitterImage: string;
+
+  @ManyToMany((type) => Photo, (photo) => photo.favUser)
+  favs: Photo[];
 }

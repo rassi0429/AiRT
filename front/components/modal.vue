@@ -1,7 +1,9 @@
 <template lang="pug">
   div.md(v-show="isModalOpen" @click="close()")
     div.image-modal(@click.stop)
-      img#editBtn(v-if="!isEditing && (uid === modalData.author) && width > 768" @click="updateEditState(true)" src="/pen.png")
+      // img#editBtn(v-if="!isEditing && (uid === modalData.author) && width > 768" @click="updateEditState(true)" src="/pen.png")
+      img#favButton(v-if="!!uid" @click="toggleFav(modalData.id)" :src="fav ? '/favo_pink.png' : '/favo.png'" style="")
+      img#favButton(v-if="!!uid" @click="toggleFav(modalData.id)" :src="fav ? '/favo_pink.png' : '/favo.png'" style="")
       img#deleteBtn(v-if="!isEditing && (uid === modalData.author)&& width > 768" @click="deletePhoto" src="/delete.png")
       img#twShareBtn(@click="shareTwitter()" src="/tw.png")
       img#closeBtn(@click="close()" src="/close.png")
@@ -18,8 +20,9 @@
                   button.button.is-white.is-outlined#TagBtn(v-for="(tag, ii) in editingTag" :key="ii" @click="deleteTag(ii)") {{ tag }}
                 input#textbox(v-model="tmpTag")
                 img#AddTagBtn(:disabled="!tmpTag" @click="addTag" src="/plus.png")
-              div#tags(v-for="(t,i) in modalData.tags" :key="i")
-                a(:href="'/tag/' + encodeURIComponent(t.name) ") {{ "#" + t.name}}
+              p Prompt
+              div#tags.ml-1(v-for="(t,i) in modalData.prompt" :key="i")
+                a(:href="'/tag/' + encodeURIComponent(t.name) ") {{ t.name}}
           div.is-flex#editUI(v-if="isEditing")
             div#saveBtn
               img#saveBtnIcon(@click="updatePhoto();updateEditState(false)" src="/save.png")
@@ -34,8 +37,9 @@
 </template>
 
 <script>
-import {mapActions, mapMutations, mapState} from "vuex";
+import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 import axios from "axios"
+import auth from "@/plugins/auth";
 
 export default {
   name: "PhotoViewModal",
@@ -44,7 +48,8 @@ export default {
       name: "",
       tmpTag: "",
       url: "",
-      loading: true
+      loading: true,
+      fav: false
     }
   },
   head() {
@@ -56,9 +61,12 @@ export default {
     ...mapState("modal", ["isModalOpen", "modalData", "username", "isEditing", "editingTag", "width"]),
     ...mapState(["endpoint"]),
     ...mapState("auth", ["uid"]),
+    ...mapGetters("store",["isFav"]),
   },
   watch: {
     isModalOpen(val, old) {
+      this.fav = this.isFav(this.modalData.id)
+      console.log(this.isFav(this.modalData.id))
       if (!val || this.modalData.id === 0) {
         this.url = "/load.png"
         return
@@ -71,7 +79,6 @@ export default {
   },
   async mounted() {
     if (this.$route.query.modal) {
-      console.log(this.modalData)
       try {
         const {data} = await axios.get(`${this.endpoint}/v1/photo/${this.$route.query.modal}`)
         this.openModal(data)
@@ -84,6 +91,15 @@ export default {
   methods: {
     ...mapMutations('modal', ["updateTags", 'openModal', "closeModal", "openModalWithQuery", "updateComment", "updateEditState", "deleteTag"]),
     ...mapActions(`modal`, ["updatePhoto", "updateData", "deletePhoto"]),
+    ...mapActions(`store`, ["updateFavs"]),
+    async toggleFav(id) {
+      console.log(id)
+      this.fav = !this.fav
+      const user = await auth()
+      const token = await user.getIdToken(true)
+      await axios.post(`${this.endpoint}/v1/user/fav/${id}`, {}, {headers: {token}})
+      await this.updateFavs()
+    },
     toUser(userId) {
       this.closeModal()
       this.$router.push('/user/' + userId)
@@ -211,12 +227,12 @@ p {
   margin-bottom: 4em;
   margin-right: 0.6em;
   max-width: 35px;
-  opacity: 0.2;;
+  opacity: 0.2;
   z-index: 10;
 }
 
 #twShareBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #closeBtn {
@@ -226,12 +242,12 @@ p {
   margin-bottom: 0.8em;
   margin-right: 0.8em;
   max-width: 30px;
-  opacity: 0.2;;
+  opacity: 0.2;
   z-index: 10;
 }
 
 #closeBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #comment {
@@ -250,17 +266,32 @@ p {
 
 #deleteBtn {
   position: absolute;
-  top: 0;
+  bottom: 0;
   right: 0;
-  margin-top: 4em;
-  margin-right: 1em;
+  margin-bottom: 7.5em;
+  margin-right: 0.8em;
   max-width: 30px;
-  opacity: 0.2;;
+  opacity: 0.2;
   z-index: 10;
 }
 
+#favButton {
+   position: absolute;
+   bottom: 0;
+   right: 0;
+   margin-bottom: 11em;
+   margin-right: 0.8em;
+   max-width: 30px;
+   opacity: 0.5;
+   z-index: 10;
+ }
+
+#favButton:hover {
+  opacity: 0.8;
+}
+
 #deleteBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #editBtn {
@@ -270,12 +301,12 @@ p {
   margin-top: 0.8em;
   margin-right: 0.8em;
   max-width: 30px;
-  opacity: 0.2;;
+  opacity: 0.2;
   z-index: 10;
 }
 
 #editBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #tags {
@@ -283,7 +314,7 @@ p {
   overflow-y: scroll;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #tags > a {
@@ -299,7 +330,7 @@ p {
   position: absolute;
   bottom: 0;
   margin-bottom: 3em;
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #UserLink {
@@ -316,7 +347,7 @@ p {
 
 #editUI {
   position: absolute;
-  opacity: 0.5;;
+  opacity: 0.5;
   width: 100px;
   right: 1em;
   bottom: 5em;
@@ -325,11 +356,11 @@ p {
 }
 
 #saveBtn {
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #saveBtn:hover {
-  opacity: 0.8;;
+  opacity: 0.8;
 }
 
 #saveBtnIcon {
@@ -337,12 +368,12 @@ p {
 }
 
 #cancelBtn {
-  opacity: 0.5;;
+  opacity: 0.5;
   width: 50px;
 }
 
 #cancelBtn:hover {
-  opacity: 0.8;;
+  opacity: 0.8;
 }
 
 #cancelBtnIcon {
@@ -357,18 +388,18 @@ p {
   position: absolute;
   bottom: 0;
   margin-bottom: 1.5em;
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #AddTagBtn {
-  opacity: 0.2;;
+  opacity: 0.2;
   width: 1em;
   margin-left: 0.5em;
   margin-top: 0.5em;
 }
 
 #AddTagBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 #commentField {
@@ -391,7 +422,7 @@ p {
 }
 
 #TagBtn {
-  opacity: 0.2;;
+  opacity: 0.2;
   margin-right: 3px;
   margin-bottom: 3px;
   height: 1.2em;
@@ -399,7 +430,7 @@ p {
 }
 
 #TagBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
 }
 
 </style>

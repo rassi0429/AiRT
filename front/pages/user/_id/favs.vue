@@ -2,6 +2,8 @@
   div
     textarea#copytext(:value="'aaaa'")
     img#uploadBtn_user(v-show="uid" @click="openModal" tag="img" src="/upload_btn.png")
+    img#r18Btn(v-if="uid && !r18" @click="onR18" tag="img" src="/r18_off.png")
+    img#r18Btn(v-if="uid && r18" @click="offR18" tag="img" src="/r18_on.png")
     img#logoutBtn(v-show="uid" @click="LogOut" src="/logout.png")
     p#counter  {{userInfo.countInfo.photo}} pictures
     div#headerBackground
@@ -9,7 +11,9 @@
     div#content
       div.user-header.is-flex
         img#avatar(:src="userInfo.user.twitterImage.replace('_normal', '')")
-        a.has-text-white#UserName(target="_blank" :href="'https://twitter.com/i/user/'+ userInfo.user.twitterId") {{ userInfo.user.name }}
+        a.has-text-white#UserName(target="_blank" :href="'https://twitter.com/i/user/'+ userInfo.user.twitterId") {{ userInfo.user.name }} の favorite
+        div.ml-auto()
+          a.has-text-white(:href="`/user/${uid}`") Home
       div#imageGrid
         grid-image(:images="photos")
 </template>
@@ -20,18 +24,25 @@ import PhotoViewModal from "@/components/modal";
 import UploadModal from "@/components/upload";
 
 export default {
-  name: "UserPhotosPage",
+  name: "UserFavsPage",
   components: {UploadModal, PhotoViewModal},
   layout: "normal",
   async asyncData({params, query}) {
     try {
       const {data} = await axios.get(`https://image-api.kokoa.dev/v1/user/${params.id}`)
       if (query.modal) {
-        const photo = await axios.get("https://image-api.kokoa.dev/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
+        const photo = await axios.get("https://image-api.kokoa.dev/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue", "").replace("?nsfw=true", ""))
         return {preData: data, prePhotoData: photo.data}
       }
       return {preData: data}
-    } catch {}
+    } catch {
+    }
+  },
+  watch: {
+    async r18(val, old) {
+      console.log("changed!")
+      this.photos = await this.getUserPhoto()
+    }
   },
   data() {
     return {
@@ -52,45 +63,56 @@ export default {
           {hid: 'description', name: 'description', content: this.preData.user.name + "'s Photo"},
           {hid: 'og:type', property: 'og:type', content: 'website'},
           {hid: 'og:title', property: 'og:title', content: `${this.prePhotoData?.comment} - ${this.preData.user.name}`},
-          {hid: 'og:url', property: 'og:url', content: `${this.endpoint}/user/${this.$route.params.id}?modal=${this.$route.query.modal}`},
+          {
+            hid: 'og:url',
+            property: 'og:url',
+            content: `${this.endpoint}/user/${this.$route.params.id}?modal=${this.$route.query.modal}`
+          },
           {hid: 'og:description', property: 'og:description', content: this.preData?.user.name + "'s Photo"},
           {
             hid: 'og:image',
             property: 'og:image',
-            content: this.prePhotoData?.url.replace("public","ogp")
+            content: this.prePhotoData?.url.replace("public", "ogp")
           },
           {hid: 'twitter:card', property: 'twitter:card', content: 'summary_large_image'},
-          {hid: 'twitter:title', property: 'twitter:title', content: `${this.prePhotoData?.comment} - ${this.preData?.user.name}`},
+          {
+            hid: 'twitter:title',
+            property: 'twitter:title',
+            content: `${this.prePhotoData?.comment} - ${this.preData?.user.name}`
+          },
           {hid: 'twitter:description', property: 'twitter:description', content: this.preData?.user.name + "'s Photo"},
           {
             hid: 'twitter:image',
             property: 'twitter:image',
-            content: this.prePhotoData?.url.replace("public","ogp")
+            content: this.prePhotoData?.url.replace("public", "ogp")
           },
         ]
       }
     }
     return {
-      title: this.preData.user.name,
+      title: this.preData?.user.name,
     }
   },
   computed: {
     ...mapState(["endpoint"]),
     ...mapState("modal", ["isModalOpen"]),
     ...mapState("upload", ["isUploadModal"]),
+    ...mapState("store", ["r18"]),
   },
   async mounted() {
     this.uid = await this.getUserInfo()
     await this.getUserTwitterInfo()
-    this.photos = await this.getUserPhoto()
+    this.photos = (await this.getUserPhoto())
   },
   methods: {
     ...mapActions('auth', ['getUserInfo', "twitterLogin", "LogOut"]),
     ...mapMutations('upload', ['openModal', "closeModal"]),
+    ...mapActions("store",["toggleR18", "onR18", "offR18"]),
     async getUserPhoto() {
-      const {data} = await axios.get(`${this.endpoint}/v1/user/${this.$route.params.id}/photos?nsfw=${this.$route.query.nsfw || false}`)
-      return data
-    },    async getUserTwitterInfo() {
+      const {data} = await axios.get(`${this.endpoint}/v1/user/${this.$route.params.id}`)
+      console.log(data)
+      return data.user.favs
+    }, async getUserTwitterInfo() {
       const {data} = await axios.get(`${this.endpoint}/v1/user/${this.$route.params.id}`)
       this.userInfo = data
     }
@@ -200,20 +222,34 @@ export default {
 #logoutBtn {
   position: fixed;
   right: 10px;
-  bottom: 30px;
+  bottom: 10px;
   max-width: 50px;
+  width: 50px;
   opacity: 0.2;;
   border-radius: 100%;
 }
 
 #logoutBtn:hover {
-  opacity: 0.5;;
+  opacity: 0.5;
+}
+
+#r18Btn:hover {
+  opacity: 0.5;
+}
+
+#r18Btn {
+  position: fixed;
+  right: 10px;
+  bottom: 65px;
+  width: 50px;
+  max-width: 50px;
+  opacity: 0.4;
 }
 
 #uploadBtn_user {
   position: fixed;
   right: 10px;
-  bottom: 90px;
+  bottom: 115px;
   max-width: 50px;
   opacity: 0.2;
 }

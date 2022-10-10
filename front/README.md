@@ -1,6 +1,4 @@
-# image.kokoa.dev
-API docs is here https://rassi0429.github.io/image.kokoa.dev-back/
-
+# AiRT
 
 ## Build Setup
 
