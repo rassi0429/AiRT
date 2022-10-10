@@ -6,7 +6,7 @@
     img#r18Btn(v-if="uid && r18" @click="offR18" tag="img" src="/r18_on.png")
     nuxt-link#loginBtn(v-show="uid" :to="'/user/'+uid" tag="img" :src="photoUrl")
     img#uploadBtn(v-show="!uid" @click="twitterLogin" src="/login_btn.png")
-    a#CodeBtn(target="_blank" href="https://github.com/rassi0429/image.kokoa.dev")
+    a#CodeBtn(target="_blank" href="https://github.com/rassi0429/AiRT")
       img(src="/code.png")
     div#imageroot
       grid-image(:images="images" replace="thumbnail")
@@ -26,7 +26,7 @@ export default {
   async asyncData({params, query}) {
     try {
       if (query.modal) {
-        const photo = await axios.get("https://image-api.kokoa.dev/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
+        const photo = await axios.get("https://api.airt.cc/v1/photo/" + query.modal.replace("%3Fnsfw%3Dtrue","").replace("?nsfw=true",""))
         return {prePhotoData: photo.data}
       }
     } catch {}

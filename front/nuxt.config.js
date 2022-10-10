@@ -18,7 +18,7 @@ export default {
       { hid: 'description', name: 'description', content: 'Ai Generated image upload site' },
       { hid: 'og:site_name', property: 'og:site_name', content: 'AiRT' },
       { hid: 'og:type', property: 'og:type', content: 'website' },
-      { hid: 'og:url', property: 'og:url', content: 'https://image.kokoa.dev/' },
+      { hid: 'og:url', property: 'og:url', content: 'https://airt.cc/' },
       { hid: 'og:title', property: 'og:title', content: 'AiRT' },
       { hid: 'og:description', property: 'og:description', content: 'Ai Generated image upload site' },
       { hid: 'og:image', property: 'og:image', content: 'https://imagedelivery.net/n_TCh9IYDQry4G-U7jzPdQ/efad8331-f123-4715-e471-7a0faef7ac00/public' },
